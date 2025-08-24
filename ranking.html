@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Ranking da Turma</title>
+<style>
+body { font-family: Arial; background: linear-gradient(135deg,#f6d365,#fda085); color:#333; text-align:center; margin:0; padding:0;}
+.container { max-width:600px; margin:auto; padding:20px;}
+h1 { margin-bottom:20px;}
+table { width:100%; border-collapse: collapse; margin-top:20px; }
+th, td { padding:12px; border-bottom:1px solid #ddd; }
+th { background-color:#4CAF50; color:white; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Ranking da Turma 🏆</h1>
+  <table id="rankingTable">
+    <thead>
+      <tr><th>Posição</th><th>Nome</th><th>Pontos</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyCRXMvbv_vGECMb8WvVWVvid4oNJBH7CDg",
+    authDomain: "mat-ria.firebaseapp.com",
+    projectId: "mat-ria",
+    storageBucket: "mat-ria.firebasestorage.app",
+    messagingSenderId: "1059694088272",
+    appId: "1:1059694088272:web:89868b9852150455a6c155",
+    measurementId: "G-SCSPPQLWSJ"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const tabela = document.querySelector("#rankingTable tbody");
+
+db.collection("ranking").orderBy("pontos","desc").get()
+.then(snapshot=>{
+  let pos=1;
+  snapshot.forEach(doc=>{
+    const data=doc.data();
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${pos}</td><td>${data.nome}</td><td>${data.pontos}</td>`;
+    tabela.appendChild(tr);
+    pos++;
+  });
+});
+</script>
+
+</body>
+</html>
