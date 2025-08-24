@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Quiz de Matemática - 5º Ano</title>
+<style>
+  body { font-family: Arial; background: linear-gradient(135deg,#74ebd5,#9face6); color:#333; text-align:center; margin:0; padding:0;}
+  .container { max-width:800px; margin:auto; padding:20px; }
+  h1 { margin-bottom:20px; color:#222; }
+  .question { background:#fff; border-radius:12px; padding:20px; margin:20px 0; box-shadow:0 4px 10px rgba(0,0,0,0.15);}
+  button, select { display:block; margin:10px auto; padding:10px 20px; font-size:16px; border:none; border-radius:8px; background:#4CAF50; color:white; cursor:pointer; transition:.3s; }
+  button:hover { background:#45a049; }
+  .result { font-size:20px; font-weight:bold; margin-top:20px; }
+</style>
+</head>
+<body>
+
+<div class="container" id="startScreen">
+  <h1>Quiz de Frações - 5º Ano</h1>
+  <p>Escolha seu nome:</p>
+  <select id="playerName">
+    <option>Laura</option>
+    <option>Ana Laura</option>
+    <option>Isabella</option>
+    <option>Isabelly</option>
+    <option>Nicolas</option>
+    <option>Heitor</option>
+    <option>Enzo</option>
+    <option>Ana Luiza</option>
+    <option>Melissa</option>
+    <option>Léia (ADM)</option>
+  </select>
+  <button onclick="startQuiz()">Começar Quiz</button>
+</div>
+
+<div class="container" id="quizScreen" style="display:none;">
+  <div id="quiz"></div>
+  <button onclick="finishQuiz()">Finalizar Quiz</button>
+  <div class="result" id="result"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyCRXMvbv_vGECMb8WvVWVvid4oNJBH7CDg",
+    authDomain: "mat-ria.firebaseapp.com",
+    projectId: "mat-ria",
+    storageBucket: "mat-ria.firebasestorage.app",
+    messagingSenderId: "1059694088272",
+    appId: "1:1059694088272:web:89868b9852150455a6c155",
+    measurementId: "G-SCSPPQLWSJ"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+const questions = [
+  {q:"1/2 + 1/4 =",a:["2/4","3/4","1/6","2/6"],c:"3/4"},
+  {q:"3/5 + 1/5 =",a:["2/5","4/5","3/10","5/5"],c:"4/5"},
+  {q:"2/3 - 1/6 =",a:["1/2","1/3","2/6","5/6"],c:"1/2"},
+  {q:"4/7 + 2/7 =",a:["5/7","6/7","2/14","1"],c:"6/7"},
+  {q:"5/6 - 1/3 =",a:["2/3","3/6","4/6","1/2"],c:"1/2"},
+  {q:"2/4 + 3/4 =",a:["1","5/4","3/2","2/3"],c:"5/4"},
+  {q:"7/8 - 3/8 =",a:["4/8","3/8","1/2","7/8"],c:"4/8"},
+  {q:"3/10 + 5/10 =",a:["1/2","4/5","8/10","7/10"],c:"8/10"},
+  {q:"9/12 - 3/12 =",a:["6/12","9/12","3/9","1/2"],c:"6/12"},
+  {q:"2/3 × 3/4 =",a:["6/12","6/7","1/2","3/4"],c:"1/2"},
+  {q:"5/6 × 2/3 =",a:["10/18","1/2","10/12","5/9"],c:"10/18"},
+  {q:"1/2 ÷ 1/4 =",a:["2","1/2","4","3/2"],c:"2"},
+  {q:"3/5 ÷ 1/5 =",a:["15","5","2","3"],c:"3"},
+  {q:"2/3 ÷ 2 =",a:["2/6","1/3","2/2","1/2"],c:"1/3"},
+  {q:"4/9 × 3 =",a:["12/9","7/9","4/12","9/12"],c:"12/9"},
+  {q:"8/12 ÷ 2 =",a:["4/12","8/24","2/3","1/3"],c:"4/12"},
+  {q:"6/7 - 2/7 =",a:["2/7","4/7","1/2","5/7"],c:"4/7"},
+  {q:"2/5 + 2/5 =",a:["2/10","4/5","1","1/2"],c:"4/5"},
+  {q:"3/8 + 4/8 =",a:["7/16","7/8","1","1/2"],c:"7/8"},
+  {q:"10/12 - 6/12 =",a:["1/3","1/2","4/12","2/3"],c:"4/12"},
+  {q:"7/10 + 2/10 =",a:["9/10","1","7/12","8/10"],c:"9/10"},
+  {q:"1/6 × 6 =",a:["1","6","12","2"],c:"1"},
+  {q:"5/8 × 2 =",a:["10/16","5/16","2/8","10/8"],c:"10/8"},
+  {q:"9/12 ÷ 3 =",a:["3/12","1/4","9/36","12/9"],c:"3/12"},
+  {q:"2/3 ÷ 4 =",a:["2/12","1/3","4/3","1/6"],c:"1/6"},
+  {q:"5/7 - 2/7 =",a:["3/7","2/5","1/7","5/5"],c:"3/7"},
+  {q:"8/9 - 5/9 =",a:["2/9","1/9","3/9","4/9"],c:"3/9"},
+  {q:"7/12 + 3/12 =",a:["10/12","1/2","1","9/12"],c:"10/12"},
+  {q:"2/6 + 3/6 =",a:["4/6","1","5/6","2/3"],c:"5/6"},
+  {q:"9/10 - 4/10 =",a:["5/10","9/14","1/2","3/10"],c:"5/10"},
+  {q:"3/4 × 4 =",a:["12/4","3","1/2","4/3"],c:"12/4"},
+  {q:"5/9 × 3 =",a:["15/9","2/3","5/3","1/3"],c:"15/9"},
+  {q:"7/8 ÷ 7 =",a:["1/8","7/56","1","7/8"],c:"1/8"},
+  {q:"10/12 ÷ 5 =",a:["2/12","1/3","10/60","5/12"],c:"2/12"},
+  {q:"6/10 - 2/10 =",a:["4/10","2/5","1/5","3/10"],c:"4/10"},
+  {q:"11/12 - 5/12 =",a:["6/12","5/6","1/2","3/4"],c:"6/12"},
+  {q:"1/2 + 2/3 =",a:["7/6","1/6","5/6","2/5"],c:"7/6"},
+  {q:"3/5 + 4/10 =",a:["1/2","1","4/5","9/10"],c:"1"},
+  {q:"4/6 ÷ 2 =",a:["2/6","1/3","1/2","4/12"],c:"2/6"},
+  {q:"8/9 × 3/4 =",a:["24/36","2/3","6/9","9/12"],c:"24/36"}
+];
+
+function startQuiz() {
+  const player = document.getElementById("playerName").value;
+  window.playerName = player;
+  document.getElementById("startScreen").style.display = "none";
+  document.getElementById("quizScreen").style.display = "block";
+
+  const quizDiv = document.getElementById("quiz");
+  quizDiv.innerHTML = "";
+  questions.forEach((item,index)=>{
+    const div = document.createElement("div");
+    div.className="question";
+    div.innerHTML=`<h3>${index+1}. ${item.q}</h3>`;
+    item.a.forEach(ans=>{
+      div.innerHTML+=`<label><input type="radio" name="q${index}" value="${ans}"> ${ans}</label><br>`;
+    });
+    quizDiv.appendChild(div);
+  });
+}
+
+function finishQuiz() {
+  let score=0;
+  questions.forEach((item,index)=>{
+    const selected=document.querySelector(`input[name=q${index}]:checked`);
+    if(selected && selected.value===item.c) score++;
+  });
+  document.getElementById("result").innerText=`${window.playerName}, você acertou ${score} de ${questions.length}! 🎉`;
+
+  db.collection("ranking").add({
+    nome: window.playerName,
+    pontos: score,
+    data: new Date()
+  }).then(()=>alert("Pontuação salva! 🎉"));
+}
+</script>
+
+</body>
+</html>
